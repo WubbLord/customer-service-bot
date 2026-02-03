@@ -1,5 +1,4 @@
-from booking import BookingSystem
-from faq import FAQHandler
+from utils import BookingSystem, FAQHandler
 from datetime import datetime
 import re
 from typing import Optional

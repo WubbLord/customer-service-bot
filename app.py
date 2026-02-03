@@ -1,6 +1,5 @@
 from flask import Flask, render_template_string, request, session
-from booking import BookingSystem
-from faq import FAQHandler
+from utils import BookingSystem, FAQHandler
 from main import parse_date, parse_time, parse_intent
 import secrets
 

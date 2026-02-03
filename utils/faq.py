@@ -1,4 +1,4 @@
-from booking import BookingSystem
+from .booking import BookingSystem
 
 
 class FAQHandler:
