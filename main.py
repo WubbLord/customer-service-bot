@@ -1,10 +1,93 @@
 from booking import BookingSystem
 from faq import FAQHandler
-
+from datetime import datetime
+import re
+from typing import Optional
 
 def get_input(prompt: str) -> str:
     """Get user input with a prompt."""
     return input(f"{prompt}: ").strip()
+
+def parse_date(date_str: str) -> Optional[str]:
+    """Parse various date formats and return standardized format, or None if invalid."""
+    date_str = date_str.strip()
+
+    date_formats = [
+        "%Y-%m-%d",           # 2026-12-02
+        "%m/%d/%Y",            # 12/2/2026, 12/02/2026
+        "%m-%d-%Y",            # 12-2-2026
+        "%d/%m/%Y",            # 2/12/2026 (European)
+        "%d-%m-%Y",            # 2-12-2026
+        "%B %d, %Y",           # December 2, 2026
+        "%b %d, %Y",           # Dec 2, 2026
+        "%d %B %Y",            # 2 December 2026
+        "%d %b %Y",            # 2 Dec 2026
+        "%Y/%m/%d",            # 2026/12/02
+        "%m/%d/%y",            # 12/2/26
+        "%d/%m/%y",            # 2/12/26
+    ]
+
+    for fmt in date_formats:
+        try:
+            dt = datetime.strptime(date_str, fmt)
+            return dt.strftime("%B %d, %Y")
+        except ValueError:
+            continue
+
+    return None
+
+def parse_time(time_str: str) -> Optional[str]:
+    """Parse various time formats and return standardized format, or None if invalid."""
+    time_str = time_str.strip().upper()
+
+    hour_match = re.match(r'^(\d{1,2})\s*(AM|PM)?$', time_str)
+    if hour_match:
+        hour = int(hour_match.group(1))
+        am_pm = hour_match.group(2) or ""
+
+        if hour < 1 or hour > 12:
+            return None
+
+        if not am_pm:
+            am_pm = "AM"
+
+        time_str = f"{hour:02d}:00 {am_pm}"
+        try:
+            dt = datetime.strptime(time_str, "%I:%M %p")
+            return dt.strftime("%I:%M %p")
+        except ValueError:
+            pass
+
+    am_pm_formats = [
+        "%I:%M %p",            # 10:30 AM
+        "%I:%M%p",             # 10:30AM
+        "%I %p",               # 10 AM
+        "%I%p",                # 10AM
+        "%I:%M:%S %p",         # 10:30:45 AM
+        "%I:%M:%S%p",          # 10:30:45AM
+    ]
+
+    for fmt in am_pm_formats:
+        try:
+            dt = datetime.strptime(time_str, fmt)
+            return dt.strftime("%I:%M %p")
+        except ValueError:
+            continue
+
+    hour_minute_formats = [
+        "%H:%M",               # 14:30
+        "%H:%M:%S",            # 14:30:45
+        "%H",                  # 14
+    ]
+
+    for fmt in hour_minute_formats:
+        try:
+            dt = datetime.strptime(time_str, fmt)
+            return dt.strftime("%I:%M %p")
+        except ValueError:
+            continue
+
+    return None
 
 
 def handle_booking(booking_system: BookingSystem):
@@ -36,7 +119,7 @@ def handle_booking(booking_system: BookingSystem):
         if not date_input:
             print("Date is required.")
             continue
-        date = booking_system.parse_date(date_input)
+        date = parse_date(date_input)
         if date is None:
             print(f"Could not parse '{date_input}'. Please use a format like '12/2/2026', '2026-12-02', or 'December 2, 2026'.")
             continue
@@ -48,7 +131,7 @@ def handle_booking(booking_system: BookingSystem):
         if not time_input:
             print("Time is required.")
             continue
-        time = booking_system.parse_time(time_input)
+        time = parse_time(time_input)
         if time is None:
             print(f"Could not parse '{time_input}'. Please use a format like '10AM', '10:30 AM', or '14:30'.")
             continue

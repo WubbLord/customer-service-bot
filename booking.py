@@ -1,21 +1,7 @@
 import json
-import re
 from datetime import datetime
 from dataclasses import dataclass
 from typing import Optional
-
-@dataclass
-class Customer:
-    id: int
-    name: str
-    contact: str
-
-@dataclass
-class Location:
-    id: int
-    name: str
-    address: str
-    zip_code: str
 
 @dataclass
 class Technician:
@@ -35,8 +21,6 @@ class Appointment:
 
 class BookingSystem:
     def __init__(self, data_file: str = "data.json"):
-        self.customers: dict[int, Customer] = {}
-        self.locations: dict[int, Location] = {}
         self.technicians: list[Technician] = []
         self.appointments: list[Appointment] = []
         self._load_data(data_file)
@@ -44,22 +28,6 @@ class BookingSystem:
     def _load_data(self, data_file: str):
         with open(data_file, "r") as f:
             data = json.load(f)
-
-        for loc in data["Location_Profiles"]:
-            zip_code = loc["address"].split()[-1]
-            self.locations[loc["id"]] = Location(
-                id=loc["id"],
-                name=loc["name"],
-                address=loc["address"],
-                zip_code=zip_code,
-            )
-
-        for cust in data["Customer_Profiles"]:
-            self.customers[cust["id"]] = Customer(
-                id=cust["id"],
-                name=cust["name"],
-                contact=cust["contact"],
-            )
 
         for tech in data["Technician_Profiles"]:
             self.technicians.append(
@@ -116,87 +84,6 @@ class BookingSystem:
                 if appt.time == time:
                     return True
         return False
-
-    def parse_date(self, date_str: str) -> Optional[str]:
-        """Parse various date formats and return standardized format, or None if invalid."""
-        date_str = date_str.strip()
-
-        date_formats = [
-            "%Y-%m-%d",           # 2026-12-02
-            "%m/%d/%Y",            # 12/2/2026, 12/02/2026
-            "%m-%d-%Y",            # 12-2-2026
-            "%d/%m/%Y",            # 2/12/2026 (European)
-            "%d-%m-%Y",            # 2-12-2026
-            "%B %d, %Y",           # December 2, 2026
-            "%b %d, %Y",           # Dec 2, 2026
-            "%d %B %Y",            # 2 December 2026
-            "%d %b %Y",            # 2 Dec 2026
-            "%Y/%m/%d",            # 2026/12/02
-            "%m/%d/%y",            # 12/2/26
-            "%d/%m/%y",            # 2/12/26
-        ]
-
-        for fmt in date_formats:
-            try:
-                dt = datetime.strptime(date_str, fmt)
-                return dt.strftime("%B %d, %Y")
-            except ValueError:
-                continue
-
-        return None
-
-    def parse_time(self, time_str: str) -> Optional[str]:
-        """Parse various time formats and return standardized format, or None if invalid."""
-        time_str = time_str.strip().upper()
-
-        hour_match = re.match(r'^(\d{1,2})\s*(AM|PM)?$', time_str)
-        if hour_match:
-            hour = int(hour_match.group(1))
-            am_pm = hour_match.group(2) or ""
-
-            if hour < 1 or hour > 12:
-                return None
-
-            if not am_pm:
-                am_pm = "AM"
-
-            time_str = f"{hour:02d}:00 {am_pm}"
-            try:
-                dt = datetime.strptime(time_str, "%I:%M %p")
-                return dt.strftime("%I:%M %p")
-            except ValueError:
-                pass
-
-        am_pm_formats = [
-            "%I:%M %p",            # 10:30 AM
-            "%I:%M%p",             # 10:30AM
-            "%I %p",               # 10 AM
-            "%I%p",                # 10AM
-            "%I:%M:%S %p",         # 10:30:45 AM
-            "%I:%M:%S%p",          # 10:30:45AM
-        ]
-
-        for fmt in am_pm_formats:
-            try:
-                dt = datetime.strptime(time_str, fmt)
-                return dt.strftime("%I:%M %p")
-            except ValueError:
-                continue
-
-        hour_minute_formats = [
-            "%H:%M",               # 14:30
-            "%H:%M:%S",            # 14:30:45
-            "%H",                  # 14
-        ]
-
-        for fmt in hour_minute_formats:
-            try:
-                dt = datetime.strptime(time_str, fmt)
-                return dt.strftime("%I:%M %p")
-            except ValueError:
-                continue
-
-        return None
 
     def book_appointment(
         self, customer_name: str, service: str, zip_code: str, date: str, time: str
