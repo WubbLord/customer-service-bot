@@ -54,5 +54,3 @@ htmlcov/
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# Project specific
-instructions.pdf
