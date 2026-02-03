@@ -4,9 +4,17 @@ A command-line Customer Service chatbot for booking service appointments.
 
 ## Run
 
+**CLI:**
 ```bash
 python main.py
 ```
+
+**Web app:**
+```bash
+pip install flask
+python app.py
+```
+Then open http://localhost:5000
 
 ## Features
 
@@ -56,7 +64,8 @@ Thank you for using our service. Goodbye!
 
 | File | Purpose |
 |------|---------|
-| `main.py` | CLI interface and input parsing |
+| `main.py` | CLI interface |
+| `app.py` | Web interface (Flask) |
 | `booking.py` | Booking logic and data models |
 | `faq.py` | FAQ response handlers |
 | `data.json` | Technician and service data |

@@ -99,6 +99,7 @@ def handle_booking(booking_system: BookingSystem):
         print("Name is required.")
         return
 
+    print(f"Nice to meet you, {customer_name}!")
     services = booking_system.get_available_services()
     print(f"Available services: {', '.join(s.title() for s in services)}")
     service = get_input("Service needed (e.g., plumbing, electrical, hvac)").lower()
